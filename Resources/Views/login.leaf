@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Login</title>
+</head>
+
+<body>
+  <form method="post">
+  <input type="text" name="username" class="form-control" id="username"/>
+  <input type="password" name="password" class="form-password" id="password"/>
+  <button type="submit" class="btn btn-primary">
+    Log In
+  </button>
+  </form>
+</body>
+</html>
+
