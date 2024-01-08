@@ -8,7 +8,7 @@
 
 <body>
 <h1>Admin</h1>
-  <p><a href="/logout">Logout</a></p>
+  <p><a href="/admin/logout">Logout</a></p>
 </body>
 </html>
 
