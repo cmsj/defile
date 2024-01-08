@@ -23,13 +23,16 @@ function addNextURL() {
 </head>
 
 <body onload="addNextURL();">
+<h1>Admin</h1>
   <form method="post" id="login_form">
-  <input type="text" name="username" class="form-control" id="username"/>
-  <input type="password" name="password" class="form-password" id="password"/>
+  <p>Username: <input type="text" name="username" class="form-control" id="username"/></p>
+  <p>Password: <input type="password" name="password" class="form-password" id="password"/></p>
+  <p>
   <button type="submit" class="btn btn-primary">
     Log In
   </button>
   </form>
+  </p>
 </body>
 </html>
 

@@ -1,11 +1,15 @@
 import Fluent
 import Vapor
 
+struct LoginPageInfo: Content {
+    var nextURL: String
+}
+
 func loginPostHandler(_ req: Request) async throws -> Response {
     if req.auth.has(User.self) {
-        // FIXME: Decode req.content to get the nextURL form value
-        let nextURL = req.parameters.get("next") ?? "/"
-        print("loginPostHandler: nextURL: \(nextURL)")
+        let content = try req.content.decode(LoginPageInfo.self)
+        let nextURL = content.nextURL
+        print("loginPostHandler: redirecting to \(content.nextURL)")
         return req.redirect(to: nextURL)
     } else {
         return try await req
@@ -52,14 +56,11 @@ func routes(_ app: Application) throws {
 
     protected.post("login", use: loginPostHandler)
 
-    protected.get("admin") { req async throws -> String in
-        do {
-            let user = try req.auth.require(User.self)
-            return "Welcome \(user.username)"
-        } catch is Abort {
-            return "Unauthorized"
-        } catch {
-            throw Abort(.internalServerError)
-        }
+    protected.get("admin") { req async throws -> Response in
+        let user = try req.auth.require(User.self)
+        return try await req
+            .view
+            .render("admin", ["username": user.username])
+            .encodeResponse(for: req)
     }
 }
