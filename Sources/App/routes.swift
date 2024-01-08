@@ -3,7 +3,8 @@ import Vapor
 
 func loginPostHandler(_ req: Request) async throws -> Response {
     if req.auth.has(User.self) {
-        let nextURL = req.parameters.get("next") ?? "/admin" // FIXME: next isn't working here
+        // FIXME: Decode req.content to get the nextURL form value
+        let nextURL = req.parameters.get("next") ?? "/"
         print("loginPostHandler: nextURL: \(nextURL)")
         return req.redirect(to: nextURL)
     } else {
@@ -23,6 +24,11 @@ func routes(_ app: Application) throws {
     // Display login page
     app.get("login") { req async throws in
         try await req.view.render("login")
+    }
+    app.get("logout") { req async throws in
+        req.session.destroy()
+//        req.redirect(to: "/")
+        return req.redirect(to: "/")
     }
 
     let redirectMiddleware = User.redirectMiddleware { req -> String in

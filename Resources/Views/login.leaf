@@ -4,10 +4,26 @@
   <meta charset="utf-8">
 
   <title>Login</title>
+<script>
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, prop) => searchParams.get(prop),
+});
+let nextURL = params.next;
+
+function addNextURL() {
+    if (nextURL != "") {
+        var nextURLInput = document.createElement("input");
+        nextURLInput.setAttribute("type", "hidden");
+        nextURLInput.setAttribute("name", "nextURL");
+        nextURLInput.setAttribute("value", nextURL);
+        document.getElementById("login_form").appendChild(nextURLInput);
+    }
+}
+</script>
 </head>
 
-<body>
-  <form method="post">
+<body onload="addNextURL();">
+  <form method="post" id="login_form">
   <input type="text" name="username" class="form-control" id="username"/>
   <input type="password" name="password" class="form-password" id="password"/>
   <button type="submit" class="btn btn-primary">
