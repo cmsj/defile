@@ -6,17 +6,10 @@ struct LoginPageInfo: Content {
 }
 
 func loginPostHandler(_ req: Request) async throws -> Response {
-    if req.auth.has(User.self) {
-        let content = try req.content.decode(LoginPageInfo.self)
-        let nextURL = content.nextURL
-        print("loginPostHandler: redirecting to \(content.nextURL)")
-        return req.redirect(to: nextURL)
-    } else {
-        return try await req
-            .view
-            .render("login")
-            .encodeResponse(for: req)
-    }
+    let content = try req.content.decode(LoginPageInfo.self)
+    let nextURL = content.nextURL
+    print("loginPostHandler: redirecting to \(content.nextURL)")
+    return req.redirect(to: nextURL)
 }
 
 struct AdminController: RouteCollection {
@@ -25,8 +18,8 @@ struct AdminController: RouteCollection {
 
         // Define a route context for pages that require being logged-in
         let redirectMiddleware = User.redirectMiddleware { req -> String in
-            print("User not logged in, redirecting to login page")
-            return "/admin/login?authRequired=true&next=\(req.url.path)"
+            print("[\(req.remoteAddress?.ipAddress ?? "Unknown IP")] User not logged in, redirecting to login page")
+            return "/admin/login?authRequired=true&next=/admin"
         }
         let protected = admin.grouped([
             User.credentialsAuthenticator(),
@@ -53,7 +46,7 @@ struct AdminController: RouteCollection {
         // /admin/logout: Handle logout
         admin.get("logout") { req async throws in
             req.session.destroy()
-            return req.redirect(to: "/")
+            return req.redirect(to: "/admin")
         }
     }
 }
