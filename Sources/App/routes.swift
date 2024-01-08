@@ -21,16 +21,26 @@ func routes(_ app: Application) throws {
         try await req.view.render("index", ["title": "Defile"])
     }
 
+    // Serve downloads to valid UIDs
+    app.get("download", ":uid") { req async -> String in
+        guard let uid = req.parameters.get("uid") else {
+            return "UID missing"
+        }
+        // TODO: Check UID is valid, read the file, send it to the client
+        return "Downloading \(uid)"
+    }
+
     // Display login page
     app.get("login") { req async throws in
         try await req.view.render("login")
     }
+    // Handle logout
     app.get("logout") { req async throws in
         req.session.destroy()
-//        req.redirect(to: "/")
         return req.redirect(to: "/")
     }
 
+    // Define a route context for pages that require being logged-in
     let redirectMiddleware = User.redirectMiddleware { req -> String in
         print("User not logged in, redirecting to login page")
         return "/login?authRequired=true&next=\(req.url.path)"
@@ -52,12 +62,4 @@ func routes(_ app: Application) throws {
             throw Abort(.internalServerError)
         }
     }
-
-    app.get("download", ":uid") { req async -> String in
-        guard let uid = req.parameters.get("uid") else {
-            return "UID missing"
-        }
-        return "Downloading \(uid)"
-    }
-//    try app.register(collection: TodoController())
 }
