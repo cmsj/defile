@@ -19,12 +19,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
@@ -32,13 +26,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v3
-        with:
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+      - name: Build and push Docker imageA
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.repository }}:latest -f Dockerfile .
+          docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.repository }}:latest
+          echo "image=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.repository }}:latest" >>"${GITHUB_OUTPUT}"
 
       - name: Delete old images
         uses: actions/delete-package-versions@v4
