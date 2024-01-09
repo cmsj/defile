@@ -73,7 +73,7 @@ struct AdminController: RouteCollection {
         }
 
         let protected = admin.grouped([
-            IPSourceMiddleware(useRemoteAddress: useRemoteAddress, useForwarded: useForwarded, allowedCIDRs: ["127.0.0.1/32", "192.168.0.0/24", "10.0.88.0/24", "172.16.0.0/12"]),
+            IPSourceMiddleware(useRemoteAddress: useRemoteAddress, useForwarded: useForwarded, allowedCIDRs: ["127.0.0.1/32", "192.168.0.0/16", "10.0.88.0/24", "172.16.0.0/12"]),
             User.credentialsAuthenticator(),
             redirectMiddleware
         ])
