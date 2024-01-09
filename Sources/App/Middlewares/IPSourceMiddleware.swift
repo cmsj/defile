@@ -44,6 +44,7 @@ private struct CIDR {
         guard let netInt = convertIpToInt(net) else { return nil }
         let broadcastInt = netInt + Int(pow(2, Double(32-prefix))) - 1
 
+        print("contains: \(net)/\(prefix), \(ip) :: ipInt: \(ipInt), netInt: \(netInt), broadcastInt: \(broadcastInt)")
         return ipInt >= netInt && ipInt <= broadcastInt
     }
 }
