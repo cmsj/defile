@@ -8,6 +8,7 @@
 import Vapor
 
 private struct CIDR {
+    // Lots of inspiration for this struct comes from https://stackoverflow.com/a/52260818
     let net: String
     let prefix: Int
 
