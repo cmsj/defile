@@ -56,5 +56,5 @@ func routes(_ app: Application) throws {
     }
 
     // Register our admin area
-    try app.register(collection: AdminController())
+    try app.register(collection: AdminController(env: app.environment))
 }

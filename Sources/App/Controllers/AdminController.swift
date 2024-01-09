@@ -40,6 +40,12 @@ func loginPostHandler(_ req: Request) async throws -> Response {
 }
 
 struct AdminController: RouteCollection {
+    let env: Environment
+
+    init(env: Environment) {
+        self.env = env
+    }
+
     func boot(routes: RoutesBuilder) throws {
         let admin = routes.grouped("admin")
 
@@ -48,7 +54,26 @@ struct AdminController: RouteCollection {
             print("[\(req.remoteAddress?.ipAddress ?? "Unknown IP")] User not logged in, redirecting to login page")
             return "/admin/login?authRequired=true&next=/admin"
         }
+
+        var useRemoteAddress = false
+        var useForwarded = false
+
+        // Our defaults are that prod/test environments are assumed to be running behind a reverse proxy.
+        // Everything else is assumed to not be behind a reverse proxy
+        // FIXME: Really we should allow this to come in from an ENV variable
+        switch env {
+        case .production, .testing:
+            useForwarded = true
+        case .development:
+            fallthrough
+        default:
+            // Not clear that defaulting to using the remote IP is a great choice, but
+            // it's better than defaulting to trusting a header.
+            useRemoteAddress = true
+        }
+
         let protected = admin.grouped([
+            IPSourceMiddleware(useRemoteAddress: useRemoteAddress, useForwarded: useForwarded, allowedCIDRs: ["127.0.0.1/32", "192.168.0.0/24", "10.0.88.0/24", "172.16.0.0/12"]),
             User.credentialsAuthenticator(),
             redirectMiddleware
         ])
