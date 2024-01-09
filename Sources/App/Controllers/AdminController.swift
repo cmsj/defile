@@ -1,8 +1,35 @@
 import Fluent
 import Vapor
+import Crypto
 
 struct LoginPageInfo: Content {
     var nextURL: String
+}
+
+struct CreateShare: Content {
+    var filename: String
+}
+
+struct RevokeShare: Content {
+    var uid: UUID
+}
+
+struct AdminContext: Encodable {
+    let username: String
+    let files: [File]
+    let shares: [Share]
+}
+
+struct File: Encodable {
+    let filename: String
+    var hash: String
+
+    init(filename: String) {
+        self.filename = filename
+        self.hash = SHA256.hash(data: Data(filename.utf8))
+            .compactMap { String(format: "%02x", $0) }
+            .joined()
+    }
 }
 
 func loginPostHandler(_ req: Request) async throws -> Response {
@@ -29,9 +56,31 @@ struct AdminController: RouteCollection {
         // /admin: root page
         protected.get { req async throws -> Response in
             let user = try req.auth.require(User.self)
+            var files: [File] = []
+            var shares: [Share] = []
+
+            // Get all extant shares
+            shares = try await Share.query(on: req.db).all()
+
+
+            // Get all sharable files
+            let fm = FileManager.default
+            do {
+                let items = try fm.contentsOfDirectory(atPath: "Private")
+                for item in items {
+                    files.append(File(filename: item))
+                }
+            } catch {
+                // FIXME: This doesn't actually render anything in a client browser. Return a generic error page instead
+                return try await HTTPStatus.internalServerError
+                    .encodeResponse(for: req)
+            }
+
+            let context = AdminContext(username: user.username, files: files, shares: shares)
+
             return try await req
                 .view
-                .render("admin", ["username": user.username])
+                .render("admin", context)
                 .encodeResponse(for: req)
         }
 
@@ -46,6 +95,28 @@ struct AdminController: RouteCollection {
         // /admin/logout: Handle logout
         admin.get("logout") { req async throws in
             req.session.destroy()
+            return req.redirect(to: "/admin")
+        }
+
+        protected.post("createShare") { req async throws in
+            let content = try req.content.decode(CreateShare.self)
+            print("createShare: sharing \(content.filename)")
+            let share = Share(filename: content.filename, uid: UUID())
+            try await share.create(on: req.db)
+            return req.redirect(to: "/admin")
+        }
+
+        protected.post("revokeShare") { req async throws in
+            let content = try req.content.decode(RevokeShare.self)
+            print("revokeShare: revoking \(content.uid)")
+            let share = try await Share.query(on: req.db)
+                .filter(\.$uid == content.uid)
+                .first()
+
+            if let share {
+                try await share.delete(on: req.db)
+            }
+
             return req.redirect(to: "/admin")
         }
     }

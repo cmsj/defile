@@ -19,6 +19,7 @@ public func configure(_ app: Application) async throws {
 
     app.migrations.add(User.CreateUserTable())
     app.migrations.add(User.SeedUserTable())
+    app.migrations.add(Share.CreateShareTable())
 
     try await app.autoMigrate()
 

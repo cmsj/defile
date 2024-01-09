@@ -4,12 +4,68 @@
   <meta charset="utf-8">
 
   <title>Admin</title>
+  <style>
+    table {
+        border: 1px solid;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid;
+        padding: 5px;
+        padding-right: 50px;
+    }
+  </style>
 </head>
 
 <body>
-<h1>Admin</h1>
-<h2>Welcome #(username)</h2>
+<h1>Welcome #(username)</h1>
   <p><a href="/admin/logout">Logout</a></p>
+  <hr>
+  <h3>Unused shares:</h3>
+  <table>
+  <tr>
+    <th>Filename</th>
+    <th>UID</th>
+    <th>Created</th>
+    <th>Actions</th>
+  </tr>
+  #for(share in shares):
+    <tr>
+      <td>#(share.filename)</td>
+      <td><a href="/download/#(share.uid)">#(share.uid)</a></td>
+      <td>#(share.createdAt)</td>
+      <td>
+        <form method="post" action="/admin/revokeShare">
+          <input type="hidden" name="uid" value="#(share.uid)"/>
+          <button type="submit">Revoke</button>
+        </form>
+      </td>
+    </tr>
+  #endfor
+  </table>
+  <hr>
+  <h3>Available files:</h3>
+  <table>
+  <tr>
+    <th>Filename</th>
+    <th>Hash</th>
+    <th>Actions</th>
+  </tr>
+  #for(file in files):
+    <tr>
+      <td>#(file.filename)</td>
+      <td>#(file.hash)</td>
+      <td>
+        <form method="post" action="/admin/createShare">
+          <input type="hidden" name="filename" value="#(file.filename)"/>
+          <button type="submit">Share</button>
+        </form>
+      </td>
+    </tr>
+  #endfor
+  <tr>
+  </tr>
+  </table>
 </body>
 </html>
 
