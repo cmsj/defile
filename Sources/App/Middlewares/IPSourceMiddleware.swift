@@ -79,6 +79,7 @@ struct IPSourceMiddleware: AsyncMiddleware {
 
         if (useForwarded) {
             for forward in request.headers.forwarded {
+                print("Checking forwarded for: \(forward.for ?? "")")
                 for range in allowedRanges {
                     guard let result = range.contains(forward.for ?? "") else { continue }
                     if result {
