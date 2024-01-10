@@ -4,9 +4,16 @@
   <meta charset="utf-8">
 
   <title>#(title)</title>
+<style>
+body {
+    background-color: #000000;
+    color: #AAAAAA;
+}
+</style>
 </head>
 
 <body>
-  <h1>#(title)</h1>
+  <img src="/defile.png" />
+  <p>That's it.</p>
 </body>
 </html>
