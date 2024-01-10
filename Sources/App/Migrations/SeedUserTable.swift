@@ -15,7 +15,7 @@ extension User {
         var adminUsername: String { "admin" }
         var defaultAdminPassword: String {
             do {
-                return try Bcrypt.hash("admin")
+                return try Bcrypt.hash("admin") // FIXME: Stop hard-coding this
             } catch {
                 return ""
             }

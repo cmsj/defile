@@ -35,7 +35,7 @@ struct File: Encodable {
 func loginPostHandler(_ req: Request) async throws -> Response {
     let content = try req.content.decode(LoginPageInfo.self)
     let nextURL = content.nextURL
-    print("loginPostHandler: redirecting to \(content.nextURL)")
+    req.logger.info("loginPostHandler: redirecting to \(content.nextURL)")
     return req.redirect(to: nextURL)
 }
 
@@ -51,7 +51,7 @@ struct AdminController: RouteCollection {
 
         // Define a route context for pages that require being logged-in
         let redirectMiddleware = User.redirectMiddleware { req -> String in
-            print("[\(req.remoteAddress?.ipAddress ?? "Unknown IP")] User not logged in, redirecting to login page")
+            req.logger.info("[\(req.remoteAddress?.ipAddress ?? "Unknown IP")] User not logged in, redirecting to login page")
             return "/admin/login?authRequired=true&next=/admin"
         }
 
@@ -125,7 +125,7 @@ struct AdminController: RouteCollection {
 
         protected.post("createShare") { req async throws in
             let content = try req.content.decode(CreateShare.self)
-            print("createShare: sharing \(content.filename)")
+            req.logger.info("createShare: sharing \(content.filename)")
             let share = Share(filename: content.filename, uid: UUID())
             try await share.create(on: req.db)
             return req.redirect(to: "/admin")
@@ -133,7 +133,7 @@ struct AdminController: RouteCollection {
 
         protected.post("revokeShare") { req async throws in
             let content = try req.content.decode(RevokeShare.self)
-            print("revokeShare: revoking \(content.uid)")
+            req.logger.info("revokeShare: revoking \(content.uid)")
             let share = try await Share.query(on: req.db)
                 .filter(\.$uid == content.uid)
                 .first()

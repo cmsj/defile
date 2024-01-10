@@ -63,14 +63,14 @@ struct IPSourceMiddleware: AsyncMiddleware {
     func respond(to request: Vapor.Request, chainingTo next: Vapor.AsyncResponder) async throws -> Vapor.Response {
         var allowed: Bool = false
 
-        print("IPSourceMiddleware::respond for \(request.url)")
+        request.logger.info("IPSourceMiddleware::respond for \(request.url)")
 
         if (useRemoteAddress) {
             if let remoteIP = request.remoteAddress?.ipAddress {
                 for range in allowedCIDRs {
                     guard let result = range.contains(remoteIP) else { continue }
                     if result {
-                        print("Allowing request from \(remoteIP)")
+                        request.logger.info("Allowing request from \(remoteIP)")
                         allowed = true
                         break
                     }
@@ -79,13 +79,13 @@ struct IPSourceMiddleware: AsyncMiddleware {
         }
 
         if (useForwarded) {
-            print("Forwarded headers: \(request.headers.forwarded)")
+            request.logger.debug("Forwarded headers: \(request.headers.forwarded)")
             for forward in request.headers.forwarded {
-                print("Checking forwarded for: \(forward.for ?? "")")
+                request.logger.debug("Checking forwarded for: \(forward.for ?? "")")
                 for range in allowedCIDRs {
                     guard let result = range.contains(forward.for ?? "") else { continue }
                     if result {
-                        print("Allowing request forwarded for \(forward.for ?? "Unknown")")
+                        request.logger.info("Allowing request forwarded for \(forward.for ?? "Unknown")")
                         allowed = true
                         break
                     }
@@ -96,7 +96,7 @@ struct IPSourceMiddleware: AsyncMiddleware {
         if allowed {
             return try await next.respond(to: request)
         } else {
-            print("Blocking request from invalid IP: \(request.remoteAddress?.ipAddress ?? "Unknown")")
+            request.logger.warning("Blocking request from invalid IP: \(request.remoteAddress?.ipAddress ?? "Unknown")")
             throw Abort(.unauthorized)
         }
     }
