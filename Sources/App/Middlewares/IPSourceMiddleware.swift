@@ -63,6 +63,8 @@ struct IPSourceMiddleware: AsyncMiddleware {
     func respond(to request: Vapor.Request, chainingTo next: Vapor.AsyncResponder) async throws -> Vapor.Response {
         var allowed: Bool = false
 
+        print("IPSourceMiddleware::respond for \(request.url)")
+
         if (useRemoteAddress) {
             if let remoteIP = request.remoteAddress?.ipAddress {
                 for range in allowedCIDRs {
