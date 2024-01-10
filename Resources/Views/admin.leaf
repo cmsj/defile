@@ -32,7 +32,7 @@
   #for(share in shares):
     <tr>
       <td>#(share.filename)</td>
-      <td><a href="/download/#(share.uid)">#(share.uid)</a></td>
+      <td><a href="#(baseURL)/download/#(share.uid)">#(share.uid)</a></td>
       <td>#(share.createdAt)</td>
       <td>
         <form method="post" action="/admin/revokeShare">

@@ -15,6 +15,7 @@ struct RevokeShare: Content {
 }
 
 struct AdminContext: Encodable {
+    let baseURL: String
     let username: String
     let files: [File]
     let shares: [Share]
@@ -41,9 +42,16 @@ func loginPostHandler(_ req: Request) async throws -> Response {
 
 struct AdminController: RouteCollection {
     let env: Environment
+    let baseURL: String
 
     init(env: Environment) {
         self.env = env
+
+        if let baseURL = ProcessInfo.processInfo.environment["DEFILE_PUBLIC_URL"] {
+            self.baseURL = baseURL
+        } else {
+            self.baseURL = ""
+        }
     }
 
     func boot(routes: RoutesBuilder) throws {
@@ -54,32 +62,15 @@ struct AdminController: RouteCollection {
             req.logger.info("[\(req.remoteAddress?.ipAddress ?? "Unknown IP")] User not logged in, redirecting to login page")
             return "/admin/login?authRequired=true&next=/admin"
         }
-//
-//        var useRemoteAddress = false
-//        var useForwarded = false
-//
-//        // Our defaults are that prod/test environments are assumed to be running behind a reverse proxy.
-//        // Everything else is assumed to not be behind a reverse proxy
-//        // FIXME: Really we should allow this to come in from an ENV variable
-//        switch env {
-//        case .production, .testing:
-//            useForwarded = true
-//        case .development:
-//            fallthrough
-//        default:
-//            // Not clear that defaulting to using the remote IP is a great choice, but
-//            // it's better than defaulting to trusting a header.
-//            useRemoteAddress = true
-//        }
-        //            IPSourceMiddleware(useRemoteAddress: useRemoteAddress, useForwarded: useForwarded, allowedCIDRs: ["127.0.0.1/32", "192.168.0.0/16", "10.0.88.0/24", "172.16.0.0/12"]),
-        var adminMiddleware: [Middleware] = []
-        if let vhost = ProcessInfo.processInfo.environment["DEFILE_ADMIN_VHOST"] {
-            adminMiddleware.append(OnlyOnVhostMiddleware(vhost: vhost))
-        }
-        adminMiddleware.append(User.credentialsAuthenticator())
-        adminMiddleware.append(redirectMiddleware)
 
-        let protected = admin.grouped(adminMiddleware)
+        var protectedMiddleware: [Middleware] = []
+        if let vhost = ProcessInfo.processInfo.environment["DEFILE_ADMIN_VHOST"] {
+            protectedMiddleware.append(OnlyOnVhostMiddleware(vhost: vhost))
+        }
+        protectedMiddleware.append(User.credentialsAuthenticator())
+        protectedMiddleware.append(redirectMiddleware)
+
+        let protected = admin.grouped(protectedMiddleware)
 
         // /admin: root page
         protected.get { req async throws -> Response in
@@ -89,7 +80,6 @@ struct AdminController: RouteCollection {
 
             // Get all extant shares
             shares = try await Share.query(on: req.db).all()
-
 
             // Get all sharable files
             let fm = FileManager.default
@@ -104,7 +94,7 @@ struct AdminController: RouteCollection {
                     .encodeResponse(for: req)
             }
 
-            let context = AdminContext(username: user.username, files: files, shares: shares)
+            let context = AdminContext(baseURL: self.baseURL, username: user.username, files: files, shares: shares)
 
             return try await req
                 .view
