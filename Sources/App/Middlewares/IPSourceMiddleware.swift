@@ -7,7 +7,7 @@
 
 import Vapor
 
-private struct CIDR {
+struct CIDR {
     // Lots of inspiration for this struct comes from https://stackoverflow.com/a/52260818
     let net: String
     let prefix: Int
@@ -52,22 +52,20 @@ private struct CIDR {
 struct IPSourceMiddleware: AsyncMiddleware {
     let useRemoteAddress: Bool
     let useForwarded: Bool
-    let allowedCIDRs: [String]
+    let allowedCIDRs: [CIDR]
 
     init(useRemoteAddress: Bool = false, useForwarded: Bool = false, allowedCIDRs: [String]) {
         self.useRemoteAddress = useRemoteAddress
         self.useForwarded = useForwarded
-        self.allowedCIDRs = allowedCIDRs
+        self.allowedCIDRs = allowedCIDRs.compactMap { CIDR($0) }
     }
 
     func respond(to request: Vapor.Request, chainingTo next: Vapor.AsyncResponder) async throws -> Vapor.Response {
-        let allowedRanges = allowedCIDRs.compactMap { CIDR($0) }
-
         var allowed: Bool = false
 
         if (useRemoteAddress) {
             if let remoteIP = request.remoteAddress?.ipAddress {
-                for range in allowedRanges {
+                for range in allowedCIDRs {
                     guard let result = range.contains(remoteIP) else { continue }
                     if result {
                         print("Allowing request from \(remoteIP)")
@@ -82,7 +80,7 @@ struct IPSourceMiddleware: AsyncMiddleware {
             print("Forwarded headers: \(request.headers.forwarded)")
             for forward in request.headers.forwarded {
                 print("Checking forwarded for: \(forward.for ?? "")")
-                for range in allowedRanges {
+                for range in allowedCIDRs {
                     guard let result = range.contains(forward.for ?? "") else { continue }
                     if result {
                         print("Allowing request forwarded for \(forward.for ?? "Unknown")")
