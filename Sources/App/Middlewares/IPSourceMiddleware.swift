@@ -44,7 +44,7 @@ private struct CIDR {
         guard let netInt = convertIpToInt(net) else { return nil }
         let broadcastInt = netInt + Int(pow(2, Double(32-prefix))) - 1
 
-        print("contains: \(net)/\(prefix), \(ip) :: ipInt: \(ipInt), netInt: \(netInt), broadcastInt: \(broadcastInt)")
+        //print("contains: \(net)/\(prefix), \(ip) :: ipInt: \(ipInt), netInt: \(netInt), broadcastInt: \(broadcastInt)")
         return ipInt >= netInt && ipInt <= broadcastInt
     }
 }
@@ -79,6 +79,7 @@ struct IPSourceMiddleware: AsyncMiddleware {
         }
 
         if (useForwarded) {
+            print("Forwarded headers: \(request.headers.forwarded)")
             for forward in request.headers.forwarded {
                 print("Checking forwarded for: \(forward.for ?? "")")
                 for range in allowedRanges {
