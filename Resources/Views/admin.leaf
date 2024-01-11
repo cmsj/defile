@@ -44,6 +44,12 @@
   #endfor
   </table>
   <hr>
+  <h3>Upload file:</h3>
+  <form method="post" action="/admin/uploadFile" enctype="multipart/form-data">
+    <input type="file" id="uploadFile" name="uploadFile">
+    <input type="submit" value="Upload">
+  </form>
+  <hr>
   <h3>Available files:</h3>
   <table>
   <tr>

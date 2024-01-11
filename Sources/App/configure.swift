@@ -6,6 +6,7 @@ import Vapor
 
 // configures your application
 public func configure(_ app: Application) async throws {
+    app.routes.defaultMaxBodySize = "1000mb"
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
     app.sessions.configuration.cookieName = "defile"
