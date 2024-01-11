@@ -163,16 +163,10 @@ struct AdminController: RouteCollection {
         }
 
         adminSessionRoutes.on(.POST, "uploadFile", body: .stream) { req throws -> Response in
-            enum BodyStreamWritingToDiskError: Error {
-                case streamFailure(Error)
-                case fileHandleClosedFailure(Error)
-                case multipleFailures([BodyStreamWritingToDiskError])
-            }
-
             guard let boundary = req.headers.contentType?.parameters["boundary"] else {
                 throw Abort(.badRequest)
             }
-            req.logger.info("multipart/form-data boundary: boundary")
+            req.logger.info("multipart/form-data boundary: \(boundary)")
 
             let parser = MultipartParser(boundary: boundary)
             var fileHandle: NIOFileHandle?
