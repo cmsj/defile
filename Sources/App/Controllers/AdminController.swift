@@ -186,17 +186,18 @@ struct AdminController: RouteCollection {
                         let path = req.application.directory.workingDirectory + "/Private/\(filename)"
                         do {
                             fileHandle = try NIOFileHandle(path: path, mode: .write, flags: .allowFileCreation(posixMode: 0x744))
+                            //                        req.eventLoop.submit({
+                            //                            return req.application.fileio.openFile(path: path, mode: .write, flags: .allowFileCreation(posixMode: 0x744), eventLoop: req.eventLoop)
+                            //                                .flatMap { handle in
+                            //                                    req.logger.info("onHeader opened file")
+                            //                                    fileHandle = handle
+                            //                                    return req.eventLoop.makeSucceededFuture(())
+                            //                                }
+                            //                        })
                         } catch {
                             req.logger.error("Unable to open \(path)")
                         }
-//                        req.eventLoop.submit({
-//                            return req.application.fileio.openFile(path: path, mode: .write, flags: .allowFileCreation(posixMode: 0x744), eventLoop: req.eventLoop)
-//                                .flatMap { handle in
-//                                    req.logger.info("onHeader opened file")
-//                                    fileHandle = handle
-//                                    return req.eventLoop.makeSucceededFuture(())
-//                                }
-//                        })
+
                     }
                 }
             }
@@ -244,62 +245,6 @@ struct AdminController: RouteCollection {
                 return req.eventLoop.makeSucceededFuture(())
             }
             return req.redirect(to: "/admin")
-
-            //            let input = try req.content.decode(UploadFile.self)
-            //            guard input.uploadFile.data.readableBytes > 0 else {
-            //                throw Abort(.badRequest)
-            //            }
-            //
-            //            let path = req.application.directory.workingDirectory + "/Private/\(input.uploadFile.filename)"
-
-
-//            let path = req.application.directory.workingDirectory + "/Private/loltest"
-//            return req.application.fileio.openFile(path: path,
-//                                                   mode: .write,
-//                                                   flags: .allowFileCreation(posixMode: 0x744),
-//                                                   eventLoop: req.eventLoop)
-//            .flatMap { fileHandle in
-//                let promise = req.eventLoop.makePromise(of: HTTPStatus.self)
-//                let fileHandleBox = NIOLoopBound(fileHandle, eventLoop: req.eventLoop)
-//                req.logger.warning("PRE DRAIN")
-//                req.body.drain { part in
-//                    req.logger.warning("POST DRAIN")
-//                    let fileHandle = fileHandleBox.value
-//                    switch part {
-//                    case .buffer(let buffer):
-//                        req.logger.warning("DOING A WRITE NOW")
-//                        return req.application.fileio.write(fileHandle: fileHandle, buffer: buffer, eventLoop: req.eventLoop)
-//                    case .error(let drainError):
-//                        do {
-//                            req.logger.warning("ERROR A")
-//                            try fileHandle.close()
-//                            promise.fail(BodyStreamWritingToDiskError.streamFailure(drainError))
-//                        } catch {
-//                            req.logger.warning("ERROR B")
-//                            promise.fail(BodyStreamWritingToDiskError.multipleFailures([
-//                                .fileHandleClosedFailure(error),
-//                                .streamFailure(drainError)
-//                            ]))
-//                        }
-//                        req.logger.warning("ERROR C")
-//                        return req.eventLoop.makeSucceededFuture(())
-//                    case .end:
-//                        do {
-//                            req.logger.warning("WIN A")
-//                            try fileHandle.close()
-//                            promise.succeed(.ok)
-//                        } catch {
-//                            req.logger.warning("ERROR D")
-//                            promise.fail(BodyStreamWritingToDiskError.fileHandleClosedFailure(error))
-//                        }
-//                        req.logger.warning("WIN B")
-//                        return req.eventLoop.makeSucceededFuture(())
-//                    }
-//                }
-//                req.logger.warning("WIN C")
-//                return promise.futureResult
-//            }
         }
-
     }
 }
