@@ -10,7 +10,12 @@ public func configure(_ app: Application) async throws {
 
     app.sessions.configuration.cookieName = "defile"
     app.sessions.configuration.cookieFactory = { sessionID in
-            .init(string: sessionID.string, isSecure: false) //FIXME: isSecure should be true, but only works if we're https
+        var isSecure = false
+        if let hasTLS = ProcessInfo.processInfo.environment["DEFILE_HAS_TLS"] {
+            isSecure = (hasTLS == "true")
+        }
+
+        return HTTPCookies.Value.init(string: sessionID.string, isSecure: isSecure)
     }
     app.middleware.use(app.sessions.middleware)
     app.middleware.use(User.sessionAuthenticator())

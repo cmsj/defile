@@ -5,6 +5,8 @@ import NIOCore
 import NIOHTTP1
 import NIOConcurrencyHelpers
 
+// FIXME: There is lots of path manipulation going on in here which is not sanitised. It should be.
+
 struct LoginPageInfo: Content {
     var nextURL: String
 }
