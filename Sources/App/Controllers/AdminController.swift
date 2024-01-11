@@ -186,6 +186,7 @@ struct AdminController: RouteCollection {
                         let path = req.application.directory.workingDirectory + "/Private/\(filename)"
                         do {
                             fileHandle = try NIOFileHandle(path: path, mode: .write, flags: .allowFileCreation(posixMode: 0x744))
+                            // I feel like we should be using req.application.fileio.openFile() but I don't know how to properly call an NIO future - it's supposed to be eventloop driven magic, but we can (and do) end up with onBody being called before the file has been opened, losing data.
                             //                        req.eventLoop.submit({
                             //                            return req.application.fileio.openFile(path: path, mode: .write, flags: .allowFileCreation(posixMode: 0x744), eventLoop: req.eventLoop)
                             //                                .flatMap { handle in
