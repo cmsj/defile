@@ -19,8 +19,15 @@
 
 <body>
 <h1>Welcome #(username)</h1>
+
   <p><a href="/admin/logout">Logout</a></p>
+
+  <form method="post" action="/admin/changePassword">
+    New password: <input type="password" name="password"/>
+    <button type="submit">Change password</button>
+  </form>
   <hr>
+
   <h3>Unused shares:</h3>
   <table>
   <tr>
@@ -44,12 +51,7 @@
   #endfor
   </table>
   <hr>
-  <h3>Upload file:</h3>
-  <form method="post" action="/admin/uploadFile" enctype="multipart/form-data">
-    <input type="file" id="uploadFile" name="uploadFile">
-    <input type="submit" value="Upload">
-  </form>
-  <hr>
+
   <h3>Available files:</h3>
   <table>
   <tr>
@@ -61,10 +63,11 @@
     <tr>
       <td>#(file.filename)</td>
       <td>#(file.hash)</td>
-      <td>
+      <td nowrap>
         <form method="post" action="/admin/createShare">
           <input type="hidden" name="filename" value="#(file.filename)"/>
           <button type="submit">Share</button>
+          <button type="submit" formaction="/admin/deleteFile">Delete File</button>
         </form>
       </td>
     </tr>
@@ -72,6 +75,15 @@
   <tr>
   </tr>
   </table>
+
+  <hr>
+  <h3>Upload file:</h3>
+  <form method="post" action="/admin/uploadFile" enctype="multipart/form-data">
+    <input type="file" id="uploadFile" name="uploadFile">
+    <br/>
+    <input type="submit" value="Upload">
+  </form>
+
 </body>
 </html>
 

@@ -17,6 +17,12 @@ struct RevokeShare: Content {
     var uid: UUID
 }
 
+typealias DeleteFile = CreateShare
+
+struct ChangePassword: Content {
+    var password: String
+}
+
 struct AdminContext: Encodable {
     let baseURL: String
     let username: String
@@ -159,6 +165,44 @@ struct AdminController: RouteCollection {
                 try await share.delete(on: req.db)
             }
 
+            return req.redirect(to: "/admin")
+        }
+
+        adminSessionRoutes.post("deleteFile") { req async throws in
+            let content = try req.content.decode(DeleteFile.self)
+            req.logger.info("deleteFile: deleting \(content.filename)")
+
+            // Get all shares for this file, so we can delete them
+            let shares = try await Share.query(on: req.db)
+                .filter(\.$filename == content.filename)
+                .all()
+
+            for share in shares {
+                req.logger.info("deleteFile: deleting share \(share.uid)")
+                try await share.delete(on: req.db)
+            }
+
+            // Now delete the file itself
+            try FileManager.default.removeItem(atPath: "Private/\(content.filename)")
+
+            return req.redirect(to: "/admin")
+        }
+
+        adminSessionRoutes.post("changePassword") { req async throws in
+            let content = try req.content.decode(ChangePassword.self)
+            let user = try req.auth.require(User.self)
+            req.logger.info("changePassword: for \(user.username)")
+
+            if let dbUser = try await User.query(on: req.db)
+                .filter(\.$id == user.id!)
+                .first() {
+                do {
+                    dbUser.password = try Bcrypt.hash(content.password)
+                    try await dbUser.update(on: req.db)
+                } catch {
+                    throw Abort(.internalServerError)
+                }
+            }
             return req.redirect(to: "/admin")
         }
 
