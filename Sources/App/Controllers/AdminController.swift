@@ -166,7 +166,7 @@ struct AdminController: RouteCollection {
             guard let boundary = req.headers.contentType?.parameters["boundary"] else {
                 throw Abort(.badRequest)
             }
-            req.logger.info("multipart/form-data boundary: \(boundary)")
+            req.logger.debug("multipart/form-data boundary: \(boundary)")
 
             let parser = MultipartParser(boundary: boundary)
             var fileHandle: NIOFileHandle?
@@ -179,16 +179,8 @@ struct AdminController: RouteCollection {
                     if let filename: String = header.contentDisposition?.filename {
                         let path = req.application.directory.workingDirectory + "/Private/\(filename)"
                         do {
+                            // FIXME: We really shouldn't be using NIO primitives here, we're not in a Future chain in this closure
                             fileHandle = try NIOFileHandle(path: path, mode: .write, flags: .allowFileCreation(posixMode: 0x744))
-                            // I feel like we should be using req.application.fileio.openFile() but I don't know how to properly call an NIO future - it's supposed to be eventloop driven magic, but we can (and do) end up with onBody being called before the file has been opened, losing data.
-                            //                        req.eventLoop.submit({
-                            //                            return req.application.fileio.openFile(path: path, mode: .write, flags: .allowFileCreation(posixMode: 0x744), eventLoop: req.eventLoop)
-                            //                                .flatMap { handle in
-                            //                                    req.logger.info("onHeader opened file")
-                            //                                    fileHandle = handle
-                            //                                    return req.eventLoop.makeSucceededFuture(())
-                            //                                }
-                            //                        })
                         } catch {
                             req.logger.error("Unable to open \(path)")
                         }
@@ -204,7 +196,8 @@ struct AdminController: RouteCollection {
                 }
 
                 req.logger.info("Writing...")
-                req.application.fileio.write(fileHandle: fileHandle, buffer: bytes, eventLoop: req.eventLoop)
+                // FIXME: We really shouldn't be using NIO primitives here, we're not in a Future chain in this closure
+                _ = req.application.fileio.write(fileHandle: fileHandle, buffer: bytes, eventLoop: req.eventLoop)
             }
             parser.onPartComplete = {
                 print("onPartComplete")
