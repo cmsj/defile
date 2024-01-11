@@ -121,9 +121,7 @@ struct AdminController: RouteCollection {
                     files.append(SharableFile(filename: item))
                 }
             } catch {
-                // FIXME: This doesn't actually render anything in a client browser. Return a generic error page instead
-                return try await HTTPStatus.internalServerError
-                    .encodeResponse(for: req)
+                throw Abort(.internalServerError)
             }
 
             let context = AdminContext(baseURL: self.baseURL, username: user.username, files: files, shares: shares)
